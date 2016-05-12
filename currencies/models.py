@@ -28,7 +28,7 @@ class Currency(models.Model):
         verbose_name_plural = _('currencies')
 
     def __unicode__(self):
-        return self.code
+        return u"[{self.code}] {self.name}".format(self=self)
 
     def save(self, **kwargs):
         # Make sure the base and default currencies are unique
