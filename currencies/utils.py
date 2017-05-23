@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from decimal import Decimal as D, ROUND_UP
+from decimal import Decimal as D #, ROUND_UP
 
 from .models import Currency as C
 from .conf import SESSION_KEY
@@ -13,7 +13,9 @@ def calculate(price, code):
     # then convert from the base to the given currency
     price = (D(price) / default.factor) * to.factor
 
-    return price.quantize(D("0.01"), rounding=ROUND_UP)
+    # rounding turns 6.90 into 6.91 :duh:
+    # the default HALF_EVEN rounding works fine so...
+    return price.quantize(D("0.01")) #, rounding=ROUND_UP)
 
 
 def convert(amount, from_code, to_code):
@@ -23,7 +25,9 @@ def convert(amount, from_code, to_code):
     from_, to = C.active.get(code=from_code), C.active.get(code=to_code)
 
     amount = D(amount) * (to.factor / from_.factor)
-    return amount.quantize(D("0.01"), rounding=ROUND_UP)
+    # rounding turns 6.90 into 6.91 :duh:
+    # the default HALF_EVEN rounding works fine so...
+    return amount.quantize(D("0.01")) #, rounding=ROUND_UP)
 
 
 def get_currency_code(request):
