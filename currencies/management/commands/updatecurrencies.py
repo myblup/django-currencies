@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
+from __future__ import unicode_literals
 
 from decimal import Decimal as D
 from datetime import datetime as d
 
 from django.conf import settings
-from django.core.management.base import NoArgsCommand
+from django.core.management.base import BaseCommand
 from django.core.exceptions import ImproperlyConfigured
 
 from openexchangerates import OpenExchangeRatesClient
@@ -17,8 +18,12 @@ if APP_ID is None:
         "You need to set the 'OPENEXCHANGERATES_APP_ID' setting to your openexchangerates.org api key")
 
 
-class Command(NoArgsCommand):
+class Command(BaseCommand):
     help = "Update the currencies against the current exchange rates"
+
+
+    def out(self, msg):
+        self.stdout.write(msg.encode("ascii", "replace"))
 
     def handle(self, *args, **options):
         self.verbose = int(options.get('verbosity', 0))
@@ -26,7 +31,7 @@ class Command(NoArgsCommand):
 
         client = OpenExchangeRatesClient(APP_ID)
         if self.verbose >= 1:
-            self.stdout.write("Querying database at %s" % (client.ENDPOINT_CURRENCIES))
+            self.out("Querying database at %s" % (client.ENDPOINT_CURRENCIES))
 
         try:
             code = C._default_manager.get(is_base=True).code
@@ -36,12 +41,12 @@ class Command(NoArgsCommand):
         l = client.latest(base=code)
 
         if self.verbose >= 1 and "timestamp" in l:
-            self.stdout.write("Rates last updated on %s" % (
+            self.out("Rates last updated on %s" % (
                 d.fromtimestamp(l["timestamp"]).strftime("%Y-%m-%d %H:%M:%S")))
 
         if "base" in l:
             if self.verbose >= 1:
-                self.stdout.write("All currencies based against %s" % (l["base"]))
+                self.out("All currencies based against %s" % (l["base"]))
 
             if not C._default_manager.filter(code=l["base"]):
                 self.stderr.write(
@@ -59,6 +64,6 @@ class Command(NoArgsCommand):
             factor = D(l["rates"][c.code]).quantize(D(".0001"))
             if c.factor != factor:
                 if self.verbose >= 1:
-                    self.stdout.write("Updating %s rate to %f" % (c, factor))
+                    self.out("Updating %s rate to %f" % (c, factor))
 
                 C._default_manager.filter(pk=c.pk).update(factor=factor)
