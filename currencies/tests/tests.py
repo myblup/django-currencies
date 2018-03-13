@@ -36,6 +36,13 @@ class TemplateTagTest(TestCase):
         )
         self.assertEqual(t.render(template.Context()), u'15.00')
 
+    def test_currency_filter_when_price_is_none(self):
+        t = template.Template(self.html +
+            '{{ price|currency:"USD" }}'
+        )
+        self.assertEqual(t.render(template.Context({"price":None})), u'')
+
+
     def test_change_currency_tag_success(self):
         t = template.Template(self.html +
             '{% change_currency 10 "USD" %}'

@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
+import logging
 
+from django.conf import settings
 from django import template
 from django.template.defaultfilters import stringfilter
 
@@ -7,7 +9,7 @@ from currencies.models import Currency
 from currencies.utils import get_currency_code, calculate
 
 register = template.Library()
-
+logger = logging.getLogger(__name__)
 
 class ChangeCurrencyNode(template.Node):
 
@@ -36,4 +38,13 @@ def change_currency(parser, token):
 @stringfilter
 @register.filter(name='currency')
 def do_currency(price, code):
-    return calculate(price, code)
+    if price is None:
+        logging.warning("currency filter called but price is None")
+        return u""
+    try:
+        return calculate(price, code)
+    except Exception as e:
+        if settings.DEBUG:
+            raise
+        logger.exception("got %s while trying to convert price '%s' (code: '%s')", e, price, code)
+        return u""
