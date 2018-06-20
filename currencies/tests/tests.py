@@ -4,11 +4,11 @@ from django import template
 from django.test import TestCase
 
 from currencies.models import Currency
-from currencies.utils import calculate
+from currencies.utils import calculate, convert
 
 
 class UtilsTest(TestCase):
-    fixtures = ['test_data']
+    fixtures = ['currencies_test_data.json']
     use_transaction = False
 
     def test_calculate_price_success(self):
@@ -23,9 +23,15 @@ class UtilsTest(TestCase):
         self.assertRaises(
             Currency.DoesNotExist, calculate, '10', 'GBP')
 
+    def test_convert_is_iso(self):
+        p = Decimal("17.43")
+        c1 = convert(p, "USD", "EUR")
+        c2 = convert(c1, "EUR", "USD")
+        self.assertEqual(p, c2)
+
 
 class TemplateTagTest(TestCase):
-    fixtures = ['test_data']
+    fixtures = ['currencies_test_data.json']
     use_transaction = False
 
     html = """{% load currency %}"""
@@ -34,20 +40,23 @@ class TemplateTagTest(TestCase):
         t = template.Template(self.html +
             '{{ 10|currency:"USD" }}'
         )
-        self.assertEqual(t.render(template.Context()), u'15.00')
+        r = t.render(template.Context())
+        self.assertEqual(u'15.00', r.replace(",", "."))
 
     def test_currency_filter_when_price_is_none(self):
         t = template.Template(self.html +
             '{{ price|currency:"USD" }}'
         )
-        self.assertEqual(t.render(template.Context({"price":None})), u'')
+        r = t.render(template.Context({"price":None}))
+        self.assertEqual(u'', r)
 
 
     def test_change_currency_tag_success(self):
         t = template.Template(self.html +
             '{% change_currency 10 "USD" %}'
         )
-        self.assertEqual(t.render(template.Context()), u'15.00')
+        r = t.render(template.Context())
+        self.assertEqual(u'15.00', r.replace(",", "."))
 
     # def test_change_currency_tag_failure(self):
     #     t = template.Template(self.html +
