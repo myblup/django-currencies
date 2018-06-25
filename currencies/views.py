@@ -4,9 +4,10 @@ from django.utils.http import is_safe_url
 from django.http import HttpResponseRedirect
 from django.views.decorators.cache import never_cache
 
+
 from .models import Currency
 from .conf import SESSION_KEY
-
+from .signals import currency_changed
 
 @never_cache
 def set_currency(request):
@@ -26,4 +27,10 @@ def set_currency(request):
             request.session[SESSION_KEY] = currency_code
         else:
             response.set_cookie(SESSION_KEY, currency_code)
+        currency_changed.send_robust(
+            sender=Currency, 
+            currency_code=currency_code, 
+            request=request, 
+            response=response
+            )
     return response
