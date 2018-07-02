@@ -17,19 +17,21 @@ def calculate(price, code):
     to = C.active.get(code=code)
     return do_calculate(price, to)
 
-
-def convert(amount, from_code, to_code):
+def raw_convert(amount, from_code, to_code):
     if from_code == to_code:
       return amount
 
     from_, to = C.active.get(code=from_code), C.active.get(code=to_code)
-
     amount = D(amount) * (to.factor / from_.factor)
+    return amount
+
+def convert(amount, from_code, to_code):
+    amount = raw_convert(amount, from_code, to_code)
     # rounding turns 6.90 into 6.91 :duh:
     # the default HALF_EVEN rounding works fine so...
-    return amount.quantize(D("0.01")) #, rounding=ROUND_UP)
-
-
+    amount = amount.quantize(D("0.01")) #, rounding=ROUND_UP)
+    return amount
+    
 def get_currency(request):
     for attr in ('session', 'COOKIES'):
         if hasattr(request, attr):
