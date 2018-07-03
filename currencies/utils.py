@@ -17,12 +17,19 @@ def calculate(price, code):
     to = C.active.get(code=code)
     return do_calculate(price, to)
 
+
+def get_conversion_ratio(from_code, to_code):
+    if from_code == to_code:
+        return D("1.0")
+    from_, to = C.active.get(code=from_code), C.active.get(code=to_code)
+    return to.factor / from_.factor
+
 def raw_convert(amount, from_code, to_code):
     if from_code == to_code:
       return amount
 
-    from_, to = C.active.get(code=from_code), C.active.get(code=to_code)
-    amount = D(amount) * (to.factor / from_.factor)
+    ratio = get_conversion_ratio(from_code, to_code)
+    amount = D(amount) * ratio
     return amount
 
 def convert(amount, from_code, to_code):

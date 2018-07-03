@@ -24,5 +24,18 @@
             "is_base": false, 
             "factor": "1.5"
         }
+    },
+    {
+        "pk": 3, 
+        "model": "currencies.currency", 
+        "fields": {
+            "code": "GBP", 
+            "name": "British Pound", 
+            "symbol": "£", 
+            "is_active": true, 
+            "is_default": false, 
+            "is_base": false, 
+            "factor": "1.80"
+        }
     }
 ]
