@@ -62,9 +62,10 @@ class Command(BaseCommand):
                     if self.verbose >= 1:
                         self.stdout.write("Creating %r (%s)" % (currencies[code], code))
 
-                    c, created = C._default_manager.get_or_create(code=code)
-                    if created is True:
-                        C._default_manager.filter(pk=c.pk).update(name=currencies[code], is_active=False)
+                    c, created = C._default_manager.get_or_create(
+                        code=code,
+                        defaults={'name': currencies[code], 'is_active': False},
+                    )
 
                     if bool(c.symbol) and self.force is False:
                         continue
